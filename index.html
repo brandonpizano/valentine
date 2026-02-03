@@ -5,38 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Unlock My Heart</title>
   <style>
-    #ohyeah {
-        position: fixed;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        background: radial-gradient(circle, #ff4d6d, #1b1638);
-        color: white;
-        font-weight: 900;
-        font-size: clamp(48px, 12vw, 160px);
-        text-align: center;
-        letter-spacing: 4px;
-        text-shadow:
-          0 0 20px rgba(255,255,255,0.6),
-          0 0 60px rgba(255,77,109,0.9);
-        z-index: 100;
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.8);
-        transition: opacity 0.2s ease, transform 0.2s ease;
-      }
-      
-      #ohyeah.show {
-        opacity: 1;
-        transform: scale(1);
-        animation: shake 0.6s infinite alternate;
-      }
-      
-      @keyframes shake {
-        from { transform: scale(1) rotate(-1deg); }
-        to   { transform: scale(1.05) rotate(1deg); }
-      }
-      
     :root{
       --bg1:#0b1020;
       --bg2:#1b1638;
@@ -67,7 +35,6 @@
       pointer-events:none;
     }
     .pill{
-      pointer-events:none;
       padding:10px 14px;
       border-radius:999px;
       background: rgba(255,255,255,0.08);
@@ -76,6 +43,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.25);
       font-weight:600;
       letter-spacing:.2px;
+      pointer-events:none;
     }
     .pill small{opacity:.8;font-weight:600}
 
@@ -128,13 +96,13 @@
     /* Hearts */
     .heart{
       position:absolute;
-      font-size: 22px;
       user-select:none;
       cursor:pointer;
       filter: drop-shadow(0 8px 16px rgba(0,0,0,.35));
       transform: translate(-50%,-50%) scale(1);
       transition: transform .08s ease;
       will-change: transform, top, left, opacity;
+      z-index:20;
     }
     .heart:active{ transform: translate(-50%,-50%) scale(0.92); }
 
@@ -159,6 +127,7 @@
       border: 1px solid rgba(255,255,255,0.18);
       box-shadow: 0 24px 80px rgba(0,0,0,0.45);
       text-align:center;
+      pointer-events:auto;
     }
     .big{
       font-size: clamp(34px, 6vw, 56px);
@@ -172,7 +141,6 @@
       justify-content:center;
       gap:12px;
       flex-wrap:wrap;
-      pointer-events:auto;
     }
     button{
       border:0;
@@ -189,8 +157,40 @@
     .confetti{
       position:fixed; inset:0; pointer-events:none; z-index:40;
     }
+
+    /* OHHHH YEAAAA overlay */
+    #ohyeah {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle, #ff4d6d, #1b1638);
+      color: white;
+      font-weight: 900;
+      font-size: clamp(48px, 12vw, 160px);
+      text-align: center;
+      letter-spacing: 4px;
+      text-shadow:
+        0 0 20px rgba(255,255,255,0.6),
+        0 0 60px rgba(255,77,109,0.9);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.85);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    #ohyeah.show {
+      opacity: 1;
+      transform: scale(1);
+      animation: shake 0.6s infinite alternate;
+    }
+    @keyframes shake {
+      from { transform: scale(1) rotate(-1deg); }
+      to   { transform: scale(1.05) rotate(1deg); }
+    }
   </style>
 </head>
+
 <body>
   <div class="hud">
     <div class="pill"><small>Goal:</small> Click <span id="goal">7</span> hearts 💘</div>
@@ -200,7 +200,7 @@
   <div class="center">
     <div class="card">
       <h1>Do you wanna play a game? 😊</h1>
-      <p>Click the floating hearts...................</p>
+      <p>Click the floating hearts…</p>
       <div class="progress" aria-label="progress">
         <div class="bar" id="bar"></div>
       </div>
@@ -210,7 +210,7 @@
   <div class="overlay" id="overlay">
     <div class="reveal">
       <h2 class="big">Will you be my Valentine?????? ❤️</h2>
-      <p class="sub">There is only one right answer.....</p>
+      <p class="sub">There is only one right answer…..</p>
       <div class="btns">
         <button class="yes" id="yesBtn">Yes 💞</button>
         <button class="no" id="noBtn">No 🙃</button>
@@ -223,132 +223,182 @@
   <div id="ohyeah">OHHHHHH YEAAAAAAA 💥💖</div>
 
   <script>
-    // --- Settings you can personalize quickly ---
-    const GOAL = 7;                 // clicks to unlock
-    const HEARTS_PER_SECOND = 1.2;   // spawn rate
-    const HEARTS = ["💖","💘","💗","💓","❤️","💕"]; // emoji choices
-    // ------------------------------------------
+    window.addEventListener("DOMContentLoaded", () => {
+      // SETTINGS
+      const GOAL = 7;
+      const HEARTS_PER_SECOND = 1.2;
+      const HEARTS = ["💖","💘","💗","💓","❤️","💕"];
 
-    const goalEl = document.getElementById("goal");
-    const countEl = document.getElementById("count");
-    const barEl = document.getElementById("bar");
-    const overlay = document.getElementById("overlay");
-    const response = document.getElementById("response");
-    goalEl.textContent = GOAL;
+      const goalEl = document.getElementById("goal");
+      const countEl = document.getElementById("count");
+      const barEl = document.getElementById("bar");
+      const overlay = document.getElementById("overlay");
+      const response = document.getElementById("response");
+      const yesBtn = document.getElementById("yesBtn");
+      const noBtn = document.getElementById("noBtn");
+      const ohyeah = document.getElementById("ohyeah");
 
-    let clicked = 0;
-    let running = true;
+      goalEl.textContent = GOAL;
 
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+      let clicked = 0;
+      let running = true;
 
-    function updateHUD(){
-      countEl.textContent = clicked;
-      const pct = clamp((clicked / GOAL) * 100, 0, 100);
-      barEl.style.width = pct + "%";
-      if (clicked >= GOAL) reveal();
-    }
+      const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-    function reveal(){
-      if (!running) return;
-      running = false;
-      overlay.classList.add("show");
-    }
+      function updateHUD(){
+        countEl.textContent = clicked;
+        const pct = clamp((clicked / GOAL) * 100, 0, 100);
+        barEl.style.width = pct + "%";
+        if (clicked >= GOAL) reveal();
+      }
 
-    function spawnHeart(){
-      if (!running) return;
+      function reveal(){
+        if (!running) return;
+        running = false;
+        overlay.classList.add("show");
+      }
 
-      const el = document.createElement("div");
-      el.className = "heart";
-      el.textContent = HEARTS[Math.floor(Math.random()*HEARTS.length)];
+      function spawnHeart(){
+        if (!running) return;
 
-      const x = Math.random() * window.innerWidth;
-      const startY = window.innerHeight + 40;
-      const drift = (Math.random()*120 - 60); // left/right drift
-      const duration = 5500 + Math.random()*2600; // ms
-      const size = 32 + Math.random()*26;
+        const el = document.createElement("div");
+        el.className = "heart";
+        el.textContent = HEARTS[Math.floor(Math.random() * HEARTS.length)];
 
-      el.style.left = x + "px";
-      el.style.top = startY + "px";
-      el.style.fontSize = size + "px";
-      el.style.opacity = 0.95;
+        const x = Math.random() * window.innerWidth;
+        const startY = window.innerHeight + 40;
+        const drift = (Math.random() * 120 - 60);
+        const duration = 5500 + Math.random() * 2600; // slower
+        const size = 32 + Math.random() * 26;         // bigger
 
-      // Click handler
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        clicked++;
-        updateHUD();
-        // pop animation + remove
-        el.style.transform = "translate(-50%,-50%) scale(1.35)";
-        el.style.opacity = 0;
-        setTimeout(() => el.remove(), 120);
+        el.style.left = x + "px";
+        el.style.top = startY + "px";
+        el.style.fontSize = size + "px";
+        el.style.opacity = 0.95;
+
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          clicked++;
+          updateHUD();
+          el.style.transform = "translate(-50%,-50%) scale(1.35)";
+          el.style.opacity = 0;
+          setTimeout(() => el.remove(), 120);
+        });
+
+        document.body.appendChild(el);
+
+        const start = performance.now();
+        function tick(t){
+          const p = clamp((t - start) / duration, 0, 1);
+          const ease = 1 - Math.pow(1 - p, 2);
+          const y = startY - ease * (window.innerHeight + 220);
+          const dx = drift * Math.sin(p * Math.PI);
+
+          el.style.top = y + "px";
+          el.style.left = (x + dx) + "px";
+          el.style.opacity = (1 - p) * 0.95;
+
+          if (p < 1 && running) requestAnimationFrame(tick);
+          else el.remove();
+        }
+        requestAnimationFrame(tick);
+      }
+
+      setInterval(spawnHeart, 1000 / HEARTS_PER_SECOND);
+
+      // Confetti
+      const canvas = document.getElementById("confetti");
+      const ctx = canvas.getContext("2d");
+
+      function resize(){
+        canvas.width = window.innerWidth * devicePixelRatio;
+        canvas.height = window.innerHeight * devicePixelRatio;
+        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      let confettiPieces = [];
+      function fireConfetti(){
+        confettiPieces = [];
+        const N = 180;
+
+        for (let i = 0; i < N; i++){
+          confettiPieces.push({
+            x: Math.random() * window.innerWidth,
+            y: -20 - Math.random() * window.innerHeight * 0.3,
+            vx: (Math.random() * 2 - 1) * 2.2,
+            vy: 2 + Math.random() * 4.2,
+            s: 4 + Math.random() * 6,
+            r: Math.random() * Math.PI
+          });
+        }
+
+        let frames = 0;
+        function anim(){
+          frames++;
+          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+          confettiPieces.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.r += 0.08;
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.r);
+            ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s);
+            ctx.restore();
+          });
+
+          confettiPieces = confettiPieces.filter(p => p.y < window.innerHeight + 40);
+
+          if (frames < 240) requestAnimationFrame(anim);
+          else ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        }
+        anim();
+      }
+
+      // YES: dramatic takeover
+      yesBtn.addEventListener("click", () => {
+        ohyeah.classList.add("show");
+        fireConfetti();
+
+        setTimeout(() => {
+          ohyeah.classList.remove("show");
+          response.textContent = "YAY 😭💞 I’m so lucky. Happy Valentine’s Day!";
+        }, 1400);
       });
 
-      document.body.appendChild(el);
+      // NO: runs away + laughs
+      function dodge(){
+        const r = noBtn.getBoundingClientRect();
+        const maxX = window.innerWidth - r.width - 24;
+        const maxY = window.innerHeight - r.height - 24;
 
-      const start = performance.now();
-      function tick(t){
-        const p = clamp((t - start) / duration, 0, 1);
-        // ease out
-        const ease = 1 - Math.pow(1 - p, 2);
-        const y = startY - ease * (window.innerHeight + 220);
-        const dx = drift * Math.sin(p * Math.PI);
-        el.style.top = y + "px";
-        el.style.left = (x + dx) + "px";
-        el.style.opacity = (1 - p) * 0.95;
+        const x = 24 + Math.random() * maxX;
+        const y = 24 + Math.random() * maxY;
 
-        if (p < 1 && running) requestAnimationFrame(tick);
-        else el.remove();
+        noBtn.style.position = "fixed";
+        noBtn.style.left = x + "px";
+        noBtn.style.top = y + "px";
       }
-      requestAnimationFrame(tick);
-    }
 
-    // spawn loop
-    const spawnInterval = setInterval(spawnHeart, 1000 / HEARTS_PER_SECOND);
+      function laugh(){
+        const laughs = [
+          "HAHAHAHAHAHAH 😂",
+          "SON IM CRINEEEEE 😭😭😭",
+          "U REALLY THINK IM GONNA FALL FOR THAT 😭😭😭",
+          "HAHAHAHAHAHA 😭"
+        ];
+        response.textContent = laughs[Math.floor(Math.random() * laughs.length)];
+      }
 
-    // Buttons
-    const ohyeah = document.getElementById("ohyeah");
+      noBtn.addEventListener("mouseenter", () => { laugh(); dodge(); });
+      noBtn.addEventListener("click", () => { laugh(); dodge(); });
 
-document.getElementById("yesBtn").addEventListener("click", () => {
-  ohyeah.classList.add("show");
-  fireConfetti();
-
-  setTimeout(() => {
-    ohyeah.classList.remove("show");
-    response.textContent = "YAY 😭💞 I’m so lucky. Happy Valentine’s Day!";
-  }, 1400);
-});
-
-
-    // playful "No" button: moves slightly when hovered/clicked
-const noBtn = document.getElementById("noBtn");
-
-function dodge(){
-  const r = noBtn.getBoundingClientRect();
-  const maxX = window.innerWidth - r.width - 24;
-  const maxY = window.innerHeight - r.height - 24;
-  const x = 24 + Math.random() * maxX;
-  const y = 24 + Math.random() * maxY;
-  noBtn.style.position = "fixed";
-  noBtn.style.left = x + "px";
-  noBtn.style.top = y + "px";
-}
-
-function laugh() {
-  const laughs = [
-    "HAHAHAHAHAHAH 😂",
-    "HAHAHAHAHAHA 😭",
-    "SON IM CRINEEEEE 😭😭😭",
-    "U REALLLY THINK IM GONNA FALL FOR THAT 😭😭😭"
-  ];
-  response.textContent = laughs[Math.floor(Math.random() * laughs.length)];
-}
-
-noBtn.addEventListener("mouseenter", () => {
-  laugh();
-  dodge();
-});
-
-noBtn.addEventListener("click", () => {
-  laugh();
-  dodge();
-});
+      updateHUD();
+    });
+  </script>
+</body>
+</html>
