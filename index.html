@@ -320,32 +320,35 @@ document.getElementById("yesBtn").addEventListener("click", () => {
 
 
     // playful "No" button: moves slightly when hovered/clicked
-    const noBtn = document.getElementById("noBtn");
-    function dodge(){
-      const r = noBtn.getBoundingClientRect();
-      const maxX = window.innerWidth - r.width - 24;
-      const maxY = window.innerHeight - r.height - 24;
-      const x = 24 + Math.random() * maxX;
-      const y = 24 + Math.random() * maxY;
-      noBtn.style.position = "fixed";
-      noBtn.style.left = x + "px";
-      noBtn.style.top = y + "px";
-    }
-    function laugh() {
-        const laughs = [
-          "HAHAHAHAHAHAH SON IM CRINEEEEE 😭😭😭SON IM CRINEEEEE 😭😭😭SON IM CRINEEEEE 😭😭😭 😭😭😭😭",
-          "SON IM CRINEEEEE 😭😭😭",
-          "SON IM CRINEEEEE 😭😭😭",
-          "U REALLLY THINK IM GONNA FALL FOR THAT😭😭😭😭😭😭 "
-        ];
-        response.textContent = laughs[Math.floor(Math.random() * laughs.length)];
-      }
-      
-      noBtn.addEventListener("mouseenter", () => {
-        laugh();
-        dodge();
-      });
-      
-      noBtn.addEventListener("click", () => {
-        laugh();
-        do
+const noBtn = document.getElementById("noBtn");
+
+function dodge(){
+  const r = noBtn.getBoundingClientRect();
+  const maxX = window.innerWidth - r.width - 24;
+  const maxY = window.innerHeight - r.height - 24;
+  const x = 24 + Math.random() * maxX;
+  const y = 24 + Math.random() * maxY;
+  noBtn.style.position = "fixed";
+  noBtn.style.left = x + "px";
+  noBtn.style.top = y + "px";
+}
+
+function laugh() {
+  const laughs = [
+    "HAHAHAHAHAHAH 😂",
+    "HAHAHAHAHAHA 😭",
+    "SON IM CRINEEEEE 😭😭😭",
+    "U REALLLY THINK IM GONNA FALL FOR THAT 😭😭😭"
+  ];
+  response.textContent = laughs[Math.floor(Math.random() * laughs.length)];
+}
+
+noBtn.addEventListener("mouseenter", () => {
+  laugh();
+  dodge();
+});
+
+noBtn.addEventListener("click", () => {
+  laugh();
+  dodge();
+});
